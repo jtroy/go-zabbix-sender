@@ -1,3 +1,3 @@
-module github.com/spetr/go-zabbix-sender
+module github.com/chmller/go-zabbix-sender
 
-go 1.16
+go 1.19

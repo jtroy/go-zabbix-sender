@@ -26,15 +26,17 @@ type Metric struct {
 	Key    string `json:"key"`
 	Value  string `json:"value"`
 	Clock  int64  `json:"clock,omitempty"`
+	NS     int    `json:"ns,omitempty"`
 	Active bool   `json:"-"`
 }
 
 // NewMetric return a zabbix Metric with the values specified
 // agentActive should be set to true if we are sending to a Zabbix Agent (active) item
-func NewMetric(host, key, value string, agentActive bool, clock ...int64) *Metric {
+func NewMetric(host, key, value string, agentActive bool, t ...time.Time) *Metric {
 	m := &Metric{Host: host, Key: key, Value: value, Active: agentActive}
-	if len(clock) > 0 {
-		m.Clock = clock[0]
+	if len(t) > 0 {
+		m.Clock = t[0].Unix()
+		m.NS = t[0].Nanosecond()
 	}
 	return m
 }
@@ -44,6 +46,7 @@ type Packet struct {
 	Request      string    `json:"request"`
 	Data         []*Metric `json:"data,omitempty"`
 	Clock        int64     `json:"clock,omitempty"`
+	NS           int       `json:"ns,omitempty"`
 	Host         string    `json:"host,omitempty"`
 	HostMetadata string    `json:"host_metadata,omitempty"`
 }
@@ -101,7 +104,7 @@ func (r *Response) GetInfo() (*ResponseInfo, error) {
 }
 
 // NewPacket return a zabbix packet with a list of metrics
-func NewPacket(data []*Metric, agentActive bool, clock ...int64) *Packet {
+func NewPacket(data []*Metric, agentActive bool, t ...time.Time) *Packet {
 	var request string
 	if agentActive {
 		request = "agent data"
@@ -110,8 +113,9 @@ func NewPacket(data []*Metric, agentActive bool, clock ...int64) *Packet {
 	}
 
 	p := &Packet{Request: request, Data: data}
-	if len(clock) > 0 {
-		p.Clock = int64(clock[0])
+	if len(t) > 0 {
+		p.Clock = t[0].Unix()
+		p.NS = t[0].Nanosecond()
 	}
 	return p
 }

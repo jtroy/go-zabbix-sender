@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+	"time"
 )
 
 type ZabbixRequestData struct {
@@ -13,12 +14,14 @@ type ZabbixRequestData struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 	Clock int64  `json:"clock"`
+	NS    int    `json:"ns"`
 }
 
 type ZabbixRequest struct {
 	Request      string              `json:"request"`
 	Data         []ZabbixRequestData `json:"data"`
 	Clock        int                 `json:"clock"`
+	NS           int                 `json:"ns"`
 	Host         string              `json:"host"`
 	HostMetadata string              `json:"host_metadata"`
 }
@@ -611,5 +614,33 @@ func TestInvalidResponseHeader(t *testing.T) {
 	err := <-errs
 	if err != nil {
 		t.Fatalf("Fake zabbix backend should not produce any errors: %v", err)
+	}
+}
+
+func TestNewMetricsWithTime(t *testing.T) {
+	now := time.Now()
+	m := NewMetric("zabbixAgent1", "ping", "13", false, now)
+
+	if m.Clock != now.Unix() {
+		t.Fatalf("Clock should be %d, got %d", now.Unix(), m.Clock)
+	}
+	if m.NS != now.Nanosecond() {
+		t.Fatalf("NS should be %d, got %d", now.Nanosecond(), m.NS)
+	}
+}
+
+func TestNewPacketWithTime(t *testing.T) {
+	now := time.Now()
+
+	m1 := NewMetric("zabbixAgent1", "ping", "13", false, time.Now())
+	m2 := NewMetric("zabbixAgent2", "pong", "42", true, time.Now())
+
+	p := NewPacket([]*Metric{m1, m2}, false, now)
+
+	if p.Clock != now.Unix() {
+		t.Fatalf("Clock should be %d, got %d", now.Unix(), p.Clock)
+	}
+	if p.NS != now.Nanosecond() {
+		t.Fatalf("NS should be %d, got %d", now.Nanosecond(), p.NS)
 	}
 }
