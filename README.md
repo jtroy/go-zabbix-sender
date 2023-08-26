@@ -22,7 +22,7 @@ const (
 
 func main() {
     var metrics []*zabbix.Metric
-    metrics = append(metrics, zabbix.NewMetric("localhost", "cpu", "1.22", agentActive, time.Now().Unix()))
+    metrics = append(metrics, zabbix.NewMetric("localhost", "cpu", "1.22", agentActive, time.Now()))
     metrics = append(metrics, zabbix.NewMetric("localhost", "status", "OK", agentActive))
     metrics = append(metrics, zabbix.NewMetric("localhost", "someTrapper", "3.14", trapper))
 
