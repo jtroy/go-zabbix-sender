@@ -240,6 +240,9 @@ func (s *Sender) Send(packet *Packet) (res Response, err error) {
 		return res, fmt.Errorf("reading the response (timeout=%v): %s", s.ReadTimeout, err)
 	}
 
+	if len(response) < 13 {
+		return res, fmt.Errorf("got truncated response [%+v] (len=%d)", response, len(response))
+	}
 	header := response[:5]
 	data := response[13:]
 
